@@ -7,8 +7,10 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
 
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+
   const sendOTP = async () => {
-    const res = await axios.post("http://localhost:8000/auth/send-otp", null, {
+    const res = await axios.post(`${BACKEND_URL}/auth/send-otp`, null, {
       params: { email },
     });
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
 export default function LoginPassword() {
   const [password, setPassword] = useState("");
@@ -9,7 +10,7 @@ export default function LoginPassword() {
   const email = localStorage.getItem("email");
 
   const login = async () => {
-    const res = await axios.post("http://localhost:8000/auth/login", null, {
+    const res = await axios.post(`${BACKEND_URL}/auth/login`, null, {
       params: { email, password },
     });
 

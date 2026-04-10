@@ -32,7 +32,9 @@ export default function Reminder({ refresh }) {
       const user_id = localStorage.getItem("user_id");
       const cron = generateCron();
 
-      await axios.post("http://localhost:8000/reminders/", {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+
+      await axios.post(`${BACKEND_URL}/reminders/`, {
         user_id,
         cron_expression: cron,
         message: reminderType === "custom" ? message : "",

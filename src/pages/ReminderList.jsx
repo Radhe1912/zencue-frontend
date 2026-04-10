@@ -5,11 +5,10 @@ import "../App.css";
 export default function ReminderList({ refreshKey }) {
   const [reminders, setReminders] = useState([]);
   const user_id = localStorage.getItem("user_id");
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
   const fetchReminders = async () => {
-    const res = await axios.get(
-      `http://localhost:8000/reminders/user/${user_id}`
-    );
+    const res = await axios.get(`${BACKEND_URL}/reminders/user/${user_id}`);
     setReminders(res.data);
   };
 
@@ -18,19 +17,19 @@ export default function ReminderList({ refreshKey }) {
   }, [refreshKey]);
 
   const stopReminder = async (id) => {
-    await axios.post(`http://localhost:8000/reminders/stop/${id}`);
+    await axios.post(`${BACKEND_URL}/reminders/stop/${id}`);
     fetchReminders();
   };
 
   const startReminder = async (id) => {
-    await axios.post(`http://localhost:8000/reminders/start/${id}`);
+    await axios.post(`${BACKEND_URL}/reminders/start/${id}`);
     fetchReminders();
   };
 
   const deleteReminder = async (id) => {
     if (!window.confirm("Delete this reminder?")) return;
 
-    await axios.delete(`http://localhost:8000/reminders/${id}`);
+    await axios.delete(`${BACKEND_URL}/reminders/${id}`);
     fetchReminders();
   };
 
