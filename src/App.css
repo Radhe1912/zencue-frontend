@@ -1,71 +1,211 @@
+/* RESET */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", sans-serif;
+}
+
+/* LAYOUT */
+.dashboard {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 16px;
+  background: #f4f7fc;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+}
+
+/* CARD */
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* INPUTS */
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  margin-top: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+  outline: none;
+}
+
+/* BUTTON */
+.button {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #4a90e2;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.button:hover {
+  background: #357bd8;
+  transform: scale(1.05);
+}
+
+/* REMINDER ITEM */
+.reminder-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  margin-top: 16px;
+  border-radius: 10px;
+  background: #f9fafc;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.reminder-item:hover {
+  background: #eef3ff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* LEFT */
+.reminder-left strong {
+  font-size: 16px;
+  color: #333;
+}
+
+.reminder-left span {
+  font-size: 14px;
+  color: #555;
+}
+
+/* ACTIONS */
+.reminder-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.reminder-actions button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.3s, transform 0.2s;
+}
+
+/* BUTTON TYPES */
+.reminder-actions button:nth-child(1) {
+  background: #4caf50;
+  color: white;
+}
+
+.reminder-actions button:nth-child(1):hover {
+  background: #3e8e41;
+  transform: scale(1.05);
+}
+
+.reminder-actions button:nth-child(2) {
+  background: #ff6b6b;
+  color: white;
+}
+
+.reminder-actions button:nth-child(2):hover {
+  background: #e55a5a;
+  transform: scale(1.05);
+}
+
+.reminder-actions button:nth-child(3) {
+  background: #333;
+  color: white;
+}
+
+.reminder-actions button:nth-child(3):hover {
+  background: #111;
+  transform: scale(1.05);
+}
+
+/* AUTH */
 .container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  background: #f4f7fc;
 }
 
-/* Auth */
 .auth-box {
+  width: 100%;
+  max-width: 400px;
   background: white;
-  padding: 25px;
-  border-radius: 10px;
-  width: 300px;
-  box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.auth-box input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+.auth-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
-.auth-box button {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  background: #007bff;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-/* Dashboard */
-.dashboard {
-  padding: 20px;
-}
-
-.title {
-  font-size: 24px;
+.auth-box h2 {
+  text-align: center;
   margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
 }
 
-.card {
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
-}
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .dashboard {
+    margin: 20px 10px;
+  }
 
-.input {
-  padding: 8px;
-  margin-right: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
+  .title {
+    font-size: 24px;
+  }
 
-.button {
-  padding: 8px 12px;
-  border: none;
-  background: #28a745;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-}
+  .reminder-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 
-.button.stop {
-  background: red;
+  .reminder-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .reminder-actions button {
+    flex: 1;
+  }
 }

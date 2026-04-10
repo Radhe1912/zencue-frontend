@@ -2,11 +2,13 @@ import { useState } from "react";
 import axios from "axios";
 import "../App.css";
 
-export default function Reminder() {
+export default function Reminder({ refresh }) {
   const [type, setType] = useState("minutes");
   const [minutes, setMinutes] = useState(30);
   const [time, setTime] = useState("09:00");
-  const [day, setDay] = useState("1"); // Monday
+  const [day, setDay] = useState("1");
+
+  const [reminderType, setReminderType] = useState("water");
   const [message, setMessage] = useState("");
 
   const generateCron = () => {
@@ -26,27 +28,47 @@ export default function Reminder() {
   };
 
   const createReminder = async () => {
-  const user_id = localStorage.getItem("user_id");
-  const cron = generateCron();
+    try {
+      const user_id = localStorage.getItem("user_id");
+      const cron = generateCron();
 
-  await axios.post("http://localhost:8000/reminders/", {
-    user_id,
-    cron_expression: cron,
-    message,
-  });
+      await axios.post("http://localhost:8000/reminders/", {
+        user_id,
+        cron_expression: cron,
+        message: reminderType === "custom" ? message : "",
+        reminder_type: reminderType,
+      });
 
-  alert("Reminder Created");
+      alert("Reminder Created ✅");
 
-  refresh();
-};
+      setMessage("");
+
+      refresh();
+    } catch (err) {
+      alert("Error creating reminder");
+    }
+  };
 
   return (
     <div className="card">
       <h3>Create Reminder</h3>
 
-      {/* TYPE SELECT */}
+      {/* 🔥 Reminder TYPE (IMPORTANT) */}
       <select
         className="input"
+        value={reminderType}
+        onChange={(e) => setReminderType(e.target.value)}
+      >
+        <option value="water">💧 Water Reminder</option>
+        <option value="posture">🪑 Posture Reminder</option>
+        <option value="anxiety">🧠 Stress Relief</option>
+        <option value="custom">✍️ Custom</option>
+      </select>
+
+      {/* 🔁 Frequency Type */}
+      <select
+        className="input"
+        value={type}
         onChange={(e) => setType(e.target.value)}
       >
         <option value="minutes">Every X Minutes</option>
@@ -54,7 +76,7 @@ export default function Reminder() {
         <option value="weekly">Weekly</option>
       </select>
 
-      {/* MINUTES */}
+      {/* ⏱ Minutes */}
       {type === "minutes" && (
         <input
           className="input"
@@ -65,7 +87,7 @@ export default function Reminder() {
         />
       )}
 
-      {/* DAILY */}
+      {/* 📅 Daily */}
       {type === "daily" && (
         <input
           className="input"
@@ -75,11 +97,12 @@ export default function Reminder() {
         />
       )}
 
-      {/* WEEKLY */}
+      {/* 📆 Weekly */}
       {type === "weekly" && (
         <>
           <select
             className="input"
+            value={day}
             onChange={(e) => setDay(e.target.value)}
           >
             <option value="1">Monday</option>
@@ -100,15 +123,18 @@ export default function Reminder() {
         </>
       )}
 
-      {/* MESSAGE */}
-      <input
-        className="input"
-        placeholder="Reminder message"
-        onChange={(e) => setMessage(e.target.value)}
-      />
+      {/* ✍️ Custom Message ONLY */}
+      {reminderType === "custom" && (
+        <input
+          className="input"
+          placeholder="Write your custom reminder..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+      )}
 
       <button className="button" onClick={createReminder}>
-        Add Reminder
+        + Add Reminder
       </button>
     </div>
   );

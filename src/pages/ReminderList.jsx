@@ -2,9 +2,8 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import "../App.css";
 
-export default function ReminderList() {
+export default function ReminderList({ refreshKey }) {
   const [reminders, setReminders] = useState([]);
-
   const user_id = localStorage.getItem("user_id");
 
   const fetchReminders = async () => {
@@ -16,20 +15,35 @@ export default function ReminderList() {
 
   useEffect(() => {
     fetchReminders();
-  }, []);
+  }, [refreshKey]);
 
   const stopReminder = async (id) => {
     await axios.post(`http://localhost:8000/reminders/stop/${id}`);
-    fetchReminders(); // ✅ refresh list
+    fetchReminders();
+  };
+
+  const startReminder = async (id) => {
+    await axios.post(`http://localhost:8000/reminders/start/${id}`);
+    fetchReminders();
+  };
+
+  const deleteReminder = async (id) => {
+    if (!window.confirm("Delete this reminder?")) return;
+
+    await axios.delete(`http://localhost:8000/reminders/${id}`);
+    fetchReminders();
   };
 
   const formatCron = (cron) => {
     if (cron.startsWith("*/")) {
-      return `Every ${cron.split("/")[1].split(" ")[0]} minutes`;
+      return `Every ${cron.split("/")[1].split(" ")[0]} min`;
     }
 
-    const parts = cron.split(" ");
-    return `At ${parts[1]}:${parts[0]} daily`;
+    const [m, h, , , d] = cron.split(" ");
+
+    if (d !== "*") return `Weekly at ${h}:${m}`;
+
+    return `Daily at ${h}:${m}`;
   };
 
   return (
@@ -40,18 +54,33 @@ export default function ReminderList() {
         <p>No reminders yet</p>
       ) : (
         reminders.map((r) => (
-          <div key={r.id} style={{ marginBottom: "10px" }}>
-            <strong>{r.message}</strong> <br />
-            <small>{formatCron(r.cron_expression)}</small>
+          <div className="reminder-item" key={r.id}>
+            <div className="reminder-left">
+              <strong>
+                {r.message && r.message.trim() !== ""
+                  ? `Custom: ${r.message}`
+                  : r.reminder_type
+                  ? `${r.reminder_type?.toUpperCase()} reminder`
+                  : "Reminder"}
+              </strong>
+              <span>{formatCron(r.cron_expression)}</span>
+            </div>
 
-            <br />
+            <div className="reminder-actions">
+              {r.active ? (
+                <button onClick={() => stopReminder(r.id)}>
+                  Stop
+                </button>
+              ) : (
+                <button onClick={() => startReminder(r.id)}>
+                  Start
+                </button>
+              )}
 
-            <button
-              className="button stop"
-              onClick={() => stopReminder(r.id)}
-            >
-              Stop
-            </button>
+              <button onClick={() => deleteReminder(r.id)}>
+                Delete
+              </button>
+            </div>
           </div>
         ))
       )}
