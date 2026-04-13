@@ -1,61 +1,20 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
-import { useEffect, useState } from "react";
-import axios from "axios";
 import Login from "./pages/Login";
 import VerifyOTP from "./pages/VerifyOTP";
 import Dashboard from "./pages/Dashboard";
 import LoginPassword from "./pages/LoginPassword";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+function hasStoredAuth() {
+  const userId = localStorage.getItem("user_id");
+  return Boolean(userId && userId.length > 20);
+}
 
 function ProtectedRoute() {
-  const [status, setStatus] = useState("loading");
-
-  useEffect(() => {
-    const userId = localStorage.getItem("user_id");
-
-    if (!userId) {
-      setStatus("guest");
-      return;
-    }
-
-    axios
-      .get(`${BACKEND_URL}/auth/session/${userId}`)
-      .then((res) => {
-        localStorage.setItem("user_email", res.data.email);
-        setStatus("authenticated");
-      })
-      .catch(() => {
-        localStorage.removeItem("user_id");
-        localStorage.removeItem("user_email");
-        setStatus("guest");
-      });
-  }, []);
-
-  if (status === "loading") {
-    return <div className="page-shell page-shell--center">Restoring your session...</div>;
-  }
-
-  if (status === "guest") {
-    return <Navigate to="/" replace />;
-  }
-
-  return <Outlet />;
+  return hasStoredAuth() ? <Outlet /> : <Navigate to="/" replace />;
 }
 
 function PublicRoute({ element }) {
-  const userId = localStorage.getItem("user_id");
-
-  if (userId && userId.length > 20) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  if (userId) {
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("user_email");
-  }
-
-  return element;
+  return hasStoredAuth() ? <Navigate to="/dashboard" replace /> : element;
 }
 
 function App() {
