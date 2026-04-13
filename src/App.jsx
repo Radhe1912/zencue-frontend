@@ -45,7 +45,17 @@ function ProtectedRoute() {
 
 function PublicRoute({ element }) {
   const userId = localStorage.getItem("user_id");
-  return userId ? <Navigate to="/dashboard" replace /> : element;
+
+  if (userId && userId.length > 20) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (userId) {
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("user_email");
+  }
+
+  return element;
 }
 
 function App() {
