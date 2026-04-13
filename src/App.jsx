@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import VerifyOTP from "./pages/VerifyOTP";
 import Dashboard from "./pages/Dashboard";
@@ -19,7 +19,7 @@ function PublicRoute({ element }) {
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<PublicRoute element={<Login />} />} />
         <Route path="/verify" element={<PublicRoute element={<VerifyOTP />} />} />
@@ -28,7 +28,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

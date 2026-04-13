@@ -33,7 +33,14 @@ export default function Login() {
         navigate("/verify");
       }
     } catch (err) {
-      setError(err.response?.data?.detail || "Unable to continue. Please try again.");
+      if (err.response?.status === 503) {
+        setError(
+          err.response?.data?.detail ||
+            "OTP delivery is unavailable on this deployment right now. Existing users can still sign in with password."
+        );
+      } else {
+        setError(err.response?.data?.detail || "Unable to continue. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
