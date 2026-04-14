@@ -4,16 +4,29 @@ import axios from "axios";
 import "../App.css";
 
 export default function Login() {
+  const [mode, setMode] = useState("signin");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
-  const sendOTP = async () => {
+  const submitAuth = async () => {
     if (!email.trim()) {
       setError("Please enter your email address.");
+      return;
+    }
+
+    if (!password.trim()) {
+      setError("Please enter your password.");
+      return;
+    }
+
+    if (mode === "create" && password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
@@ -21,26 +34,18 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await axios.post(`${BACKEND_URL}/auth/send-otp`, null, {
-        params: { email: email.trim() },
+      const endpoint = mode === "create" ? "/auth/register" : "/auth/login";
+      const res = await axios.post(`${BACKEND_URL}${endpoint}`, {
+        email: email.trim(),
+        password,
       });
 
       localStorage.setItem("email", email.trim());
-
-      if (res.data.is_existing) {
-        navigate("/login-password");
-      } else {
-        navigate("/verify");
-      }
+      localStorage.setItem("user_email", email.trim());
+      localStorage.setItem("user_id", res.data.user_id);
+      navigate("/dashboard");
     } catch (err) {
-      if (err.response?.status === 503) {
-        setError(
-          err.response?.data?.detail ||
-            "OTP delivery is unavailable on this deployment right now. Existing users can still sign in with password."
-        );
-      } else {
-        setError(err.response?.data?.detail || "Unable to continue. Please try again.");
-      }
+      setError(err.response?.data?.detail || "Unable to continue. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -53,17 +58,40 @@ export default function Login() {
           <span className="eyebrow">ZenCue</span>
           <h1>Gentle reminders that actually fit your routine.</h1>
           <p>
-            Sign in if you already have an account. If you are new, we will send a
-            one-time verification code to finish setup.
+            Create an account with email and password, then turn on browser notifications for
+            this device. ZenCue now delivers reminders with web push instead of email verification.
           </p>
         </div>
 
         <div className="auth-box auth-box--wide">
-          <h2>Continue with email</h2>
+          <h2>{mode === "create" ? "Create your account" : "Sign in to ZenCue"}</h2>
           <p className="muted-text">
-            Existing users go straight to password login. New users verify once and then
-            sign in normally after that.
+            Use the same email and password each time. After you sign in, enable notifications
+            once and reminders will start landing in this browser.
           </p>
+
+          <div className="segment-row auth-mode-switch">
+            <button
+              className={`segment-chip ${mode === "signin" ? "segment-chip--active" : ""}`}
+              type="button"
+              onClick={() => {
+                setMode("signin");
+                setError("");
+              }}
+            >
+              Sign in
+            </button>
+            <button
+              className={`segment-chip ${mode === "create" ? "segment-chip--active" : ""}`}
+              type="button"
+              onClick={() => {
+                setMode("create");
+                setError("");
+              }}
+            >
+              Create account
+            </button>
+          </div>
 
           <label className="field-label">Email</label>
           <input
@@ -74,10 +102,32 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
           />
 
+          <label className="field-label">Password</label>
+          <input
+            className="input"
+            type="password"
+            placeholder={mode === "create" ? "Create a password" : "Enter password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          {mode === "create" ? (
+            <>
+              <label className="field-label">Confirm password</label>
+              <input
+                className="input"
+                type="password"
+                placeholder="Repeat your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </>
+          ) : null}
+
           {error ? <p className="status-message status-message--error">{error}</p> : null}
 
-          <button className="button" onClick={sendOTP} disabled={loading}>
-            {loading ? "Checking account..." : "Continue"}
+          <button className="button" onClick={submitAuth} disabled={loading}>
+            {loading ? "Working..." : mode === "create" ? "Create account" : "Sign in"}
           </button>
         </div>
       </section>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Reminder from "./Reminder";
 import ReminderList from "./ReminderList";
+import PushNotificationsCard from "../components/PushNotificationsCard";
 import "../App.css";
 
 export default function Dashboard() {
@@ -26,8 +27,8 @@ export default function Dashboard() {
             <span className="eyebrow">ZenCue dashboard</span>
             <h1 className="title">A smoother command center for your routines.</h1>
             <p className="muted-text">
-              Signed in as {email || "your account"}. Build reminders faster, scan what is active,
-              and manage everything without the page feeling heavy.
+              Signed in as {email || "your account"}. Enable push on this browser, create your
+              reminders, and let ZenCue handle delivery without any email-based reminder flow.
             </p>
           </div>
 
@@ -44,7 +45,10 @@ export default function Dashboard() {
 
         <div className="dashboard-grid dashboard-grid--enhanced">
           <Reminder refresh={refresh} />
-          <ReminderList refreshKey={refreshKey} />
+          <div className="dashboard-column">
+            <PushNotificationsCard />
+            <ReminderList refreshKey={refreshKey} />
+          </div>
         </div>
       </div>
     </div>

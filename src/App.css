@@ -303,6 +303,12 @@ textarea {
   align-items: start;
 }
 
+.dashboard-column {
+  display: grid;
+  gap: 22px;
+  align-content: start;
+}
+
 .card {
   padding: 26px;
 }
@@ -527,6 +533,38 @@ textarea {
   color: var(--muted);
 }
 
+.auth-mode-switch {
+  margin: 18px 0;
+}
+
+.push-card {
+  background:
+    radial-gradient(circle at top right, rgba(47, 127, 95, 0.13), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(43, 127, 255, 0.12), transparent 32%),
+    rgba(255, 252, 246, 0.92);
+}
+
+.push-card__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.push-stats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.push-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
 .reminder-stack {
   display: grid;
   gap: 12px;
@@ -612,7 +650,8 @@ textarea {
   .dashboard-grid,
   .composer-shell,
   .hero-panel,
-  .dashboard-hero {
+  .dashboard-hero,
+  .push-actions {
     grid-template-columns: 1fr;
   }
 
@@ -653,7 +692,8 @@ textarea {
 
   .composer-pill,
   .hero-stat,
-  .list-stats {
+  .list-stats,
+  .push-stats {
     width: 100%;
   }
 

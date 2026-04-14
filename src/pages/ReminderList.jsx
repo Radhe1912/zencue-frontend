@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "../App.css";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
@@ -90,7 +90,7 @@ export default function ReminderList({ refreshKey }) {
   const [error, setError] = useState("");
   const userId = localStorage.getItem("user_id");
 
-  const fetchReminders = async () => {
+  const fetchReminders = useCallback(async () => {
     if (!userId) {
       setReminders([]);
       return;
@@ -103,11 +103,38 @@ export default function ReminderList({ refreshKey }) {
     } catch (err) {
       setError(err.response?.data?.detail || "Unable to load reminders.");
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
-    fetchReminders();
-  }, [refreshKey]);
+    let cancelled = false;
+
+    const loadReminders = async () => {
+      if (!userId) {
+        if (!cancelled) {
+          setReminders([]);
+        }
+        return;
+      }
+
+      try {
+        const res = await axios.get(`${BACKEND_URL}/reminders/user/${userId}`);
+        if (!cancelled) {
+          setReminders(res.data);
+          setError("");
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.response?.data?.detail || "Unable to load reminders.");
+        }
+      }
+    };
+
+    void loadReminders();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey, userId]);
 
   const activeCount = useMemo(
     () => reminders.filter((reminder) => reminder.active).length,

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "../App.css";
 
@@ -52,7 +52,26 @@ function getCurrentDate() {
   return `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 }
 
+function formatErrorMessage(error) {
+  if (typeof error === "string") {
+    return error;
+  }
+  if (Array.isArray(error)) {
+    return error.map((err) => {
+      if (typeof err === "object" && err.msg) {
+        return `${err.loc?.join(" > ") || "Field"}: ${err.msg}`;
+      }
+      return JSON.stringify(err);
+    }).join("; ");
+  }
+  if (typeof error === "object") {
+    return JSON.stringify(error);
+  }
+  return "An unknown error occurred.";
+}
+
 export default function Reminder({ refresh }) {
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [scheduleType, setScheduleType] = useState("minutes");
   const [minutes, setMinutes] = useState(30);
   const [time, setTime] = useState("09:00");
@@ -68,7 +87,23 @@ export default function Reminder({ refresh }) {
   const [loading, setLoading] = useState(false);
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
-  const selectedType = reminderTypeOptions.find((option) => option.value === reminderType);
+
+  useEffect(() => {
+    if (Notification.permission === "granted") {
+      setNotificationsEnabled(true);
+    }
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    if (Notification.permission === "default") {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        setNotificationsEnabled(true);
+      }
+    }
+  };
+
+  const selectedType = useMemo(() => reminderTypeOptions.find((option) => option.value === reminderType), [reminderType]);
 
   const schedulePreview = useMemo(() => {
     switch (scheduleType) {
@@ -158,7 +193,8 @@ export default function Reminder({ refresh }) {
       setSuccess("Reminder created successfully.");
       refresh();
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || "Error creating reminder.");
+      const errorDetail = err.response?.data?.detail || err.message || "Error creating reminder.";
+      setError(formatErrorMessage(errorDetail));
     } finally {
       setLoading(false);
     }
@@ -166,217 +202,228 @@ export default function Reminder({ refresh }) {
 
   return (
     <section className="card composer-card composer-card--dashboard">
-      <div className="composer-topbar">
+      {!notificationsEnabled ? (
         <div>
-          <span className="eyebrow">Create reminder</span>
-          <h2>Fast setup, less scrolling.</h2>
+          <p>Please enable notifications to add reminders.</p>
         </div>
-        <div className="composer-pill">
-          <span>{selectedType?.icon}</span>
-          <div>
-            <strong>{selectedType?.label}</strong>
-            <small>{schedulePreview}</small>
-          </div>
-        </div>
-      </div>
-
-      <div className="composer-shell">
-        <div className="composer-pane composer-pane--types">
-          <div className="mini-heading">
-            <h3>Type</h3>
-            <p>Pick the kind of reminder.</p>
-          </div>
-
-          <div className="type-grid type-grid--compact">
-            {reminderTypeOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={`type-card ${reminderType === option.value ? "type-card--active" : ""}`}
-                onClick={() => setReminderType(option.value)}
-              >
-                <span className="type-card__icon">{option.icon}</span>
-                <strong>{option.label}</strong>
-                <span>{option.description}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="composer-pane composer-pane--schedule">
-          <div className="mini-heading">
-            <h3>Schedule</h3>
-            <p>Choose when it should fire.</p>
-          </div>
-
-          <div className="segment-row">
-            {scheduleOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={`segment-chip ${scheduleType === option.value ? "segment-chip--active" : ""}`}
-                onClick={() => setScheduleType(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="quick-fields">
-            {scheduleType === "minutes" ? (
-              <div className="field-card field-card--single">
-                <label className="field-label">Repeat every</label>
-                <input
-                  className="input"
-                  type="number"
-                  min="1"
-                  placeholder="Minutes"
-                  value={minutes}
-                  onChange={(e) => setMinutes(e.target.value)}
-                />
-              </div>
-            ) : null}
-
-            {scheduleType === "once" ? (
-              <>
-                <div className="field-card">
-                  <label className="field-label">Date</label>
-                  <input
-                    className="input"
-                    type="date"
-                    value={specificDate}
-                    onChange={(e) => setSpecificDate(e.target.value)}
-                  />
-                </div>
-                <div className="field-card">
-                  <label className="field-label">Time</label>
-                  <input
-                    className="input"
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                  />
-                </div>
-              </>
-            ) : null}
-
-            {scheduleType === "daily" ? (
-              <div className="field-card field-card--single">
-                <label className="field-label">Time</label>
-                <input
-                  className="input"
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                />
-              </div>
-            ) : null}
-
-            {scheduleType === "weekly" ? (
-              <>
-                <div className="field-card">
-                  <label className="field-label">Day</label>
-                  <select className="input" value={weekday} onChange={(e) => setWeekday(e.target.value)}>
-                    {weekdayOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="field-card">
-                  <label className="field-label">Time</label>
-                  <input
-                    className="input"
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                  />
-                </div>
-              </>
-            ) : null}
-
-            {scheduleType === "monthly" ? (
-              <>
-                <div className="field-card">
-                  <label className="field-label">Day of month</label>
-                  <input
-                    className="input"
-                    type="number"
-                    min="1"
-                    max="31"
-                    value={dayOfMonth}
-                    onChange={(e) => setDayOfMonth(e.target.value)}
-                  />
-                </div>
-                <div className="field-card">
-                  <label className="field-label">Time</label>
-                  <input
-                    className="input"
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                  />
-                </div>
-              </>
-            ) : null}
-
-            {scheduleType === "yearly" ? (
-              <>
-                <div className="field-card">
-                  <label className="field-label">Month</label>
-                  <select className="input" value={month} onChange={(e) => setMonth(e.target.value)}>
-                    {monthOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="field-card">
-                  <label className="field-label">Day</label>
-                  <input
-                    className="input"
-                    type="number"
-                    min="1"
-                    max="31"
-                    value={yearlyDay}
-                    onChange={(e) => setYearlyDay(e.target.value)}
-                  />
-                </div>
-                <div className="field-card field-card--single">
-                  <label className="field-label">Time</label>
-                  <input
-                    className="input"
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                  />
-                </div>
-              </>
-            ) : null}
-          </div>
-
-          {reminderType === "custom" ? (
-            <div className="field-card field-card--custom">
-              <label className="field-label">Custom message</label>
-              <textarea
-                className="input input--textarea input--compact"
-                placeholder="Write the exact reminder you want to receive."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
+      ) : (
+        <div>
+          <div className="composer-topbar">
+            <div>
+              <span className="eyebrow">Create reminder</span>
+              <h2>Fast setup, less scrolling.</h2>
             </div>
-          ) : null}
+            <div className="composer-pill">
+              <span>{selectedType?.icon}</span>
+              <div>
+                <strong>{selectedType?.label}</strong>
+                <small>{schedulePreview}</small>
+              </div>
+            </div>
+          </div>
 
-          {error ? <p className="status-message status-message--error">{error}</p> : null}
-          {success ? <p className="status-message status-message--success">{success}</p> : null}
+          <div className="composer-shell">
+            <div className="composer-pane composer-pane--types">
+              <div className="mini-heading">
+                <h3>Type</h3>
+                <p>Pick the kind of reminder.</p>
+              </div>
 
-          <button className="button composer-button" onClick={createReminder} disabled={loading}>
-            {loading ? "Saving reminder..." : "Add reminder"}
-          </button>
+              <div className="type-grid type-grid--compact">
+                {reminderTypeOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`type-card ${reminderType === option.value ? "type-card--active" : ""}`}
+                    onClick={() => setReminderType(option.value)}
+                  >
+                    <span className="type-card__icon">{option.icon}</span>
+                    <strong>{option.label}</strong>
+                    <span>{option.description}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="composer-pane composer-pane--schedule">
+              <div className="mini-heading">
+                <h3>Schedule</h3>
+                <p>Choose when the push notification should fire.</p>
+              </div>
+
+              <div className="segment-row">
+                {scheduleOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`segment-chip ${scheduleType === option.value ? "segment-chip--active" : ""}`}
+                    onClick={() => setScheduleType(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="quick-fields">
+                {scheduleType === "minutes" ? (
+                  <div className="field-card field-card--single">
+                    <label className="field-label">Repeat every</label>
+                    <input
+                      className="input"
+                      type="number"
+                      min="1"
+                      placeholder="Minutes"
+                      value={minutes}
+                      onChange={(e) => setMinutes(e.target.value)}
+                    />
+                  </div>
+                ) : null}
+
+                {scheduleType === "once" ? (
+                  <>
+                    <div className="field-card">
+                      <label className="field-label">Date</label>
+                      <input
+                        className="input"
+                        type="date"
+                        value={specificDate}
+                        onChange={(e) => setSpecificDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="field-card">
+                      <label className="field-label">Time</label>
+                      <input
+                        className="input"
+                        type="time"
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                      />
+                    </div>
+                  </>
+                ) : null}
+
+                {scheduleType === "daily" ? (
+                  <div className="field-card field-card--single">
+                    <label className="field-label">Time</label>
+                    <input
+                      className="input"
+                      type="time"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                    />
+                  </div>
+                ) : null}
+
+                {scheduleType === "weekly" ? (
+                  <>
+                    <div className="field-card">
+                      <label className="field-label">Day</label>
+                      <select className="input" value={weekday} onChange={(e) => setWeekday(e.target.value)}>
+                        {weekdayOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="field-card">
+                      <label className="field-label">Time</label>
+                      <input
+                        className="input"
+                        type="time"
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                      />
+                    </div>
+                  </>
+                ) : null}
+
+                {scheduleType === "monthly" ? (
+                  <>
+                    <div className="field-card">
+                      <label className="field-label">Day of month</label>
+                      <input
+                        className="input"
+                        type="number"
+                        min="1"
+                        max="31"
+                        value={dayOfMonth}
+                        onChange={(e) => setDayOfMonth(e.target.value)}
+                      />
+                    </div>
+                    <div className="field-card">
+                      <label className="field-label">Time</label>
+                      <input
+                        className="input"
+                        type="time"
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                      />
+                    </div>
+                  </>
+                ) : null}
+
+                {scheduleType === "yearly" ? (
+                  <>
+                    <div className="field-card">
+                      <label className="field-label">Month</label>
+                      <select className="input" value={month} onChange={(e) => setMonth(e.target.value)}>
+                        {monthOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="field-card">
+                      <label className="field-label">Day</label>
+                      <input
+                        className="input"
+                        type="number"
+                        min="1"
+                        max="31"
+                        value={yearlyDay}
+                        onChange={(e) => setYearlyDay(e.target.value)}
+                      />
+                    </div>
+                    <div className="field-card field-card--single">
+                      <label className="field-label">Time</label>
+                      <input
+                        className="input"
+                        type="time"
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                      />
+                    </div>
+                  </>
+                ) : null}
+              </div>
+
+              {reminderType === "custom" ? (
+                <div className="field-card field-card--custom">
+                  <label className="field-label">Custom message</label>
+                  <textarea
+                    className="input input--textarea input--compact"
+                    placeholder="Write the exact reminder you want to receive."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                  />
+                </div>
+              ) : null}
+
+              {error ? <p className="status-message status-message--error">{typeof error === "string" ? error : formatErrorMessage(error)}</p> : null}
+              {success ? <p className="status-message status-message--success">{success}</p> : null}
+              <p className="inline-note">
+                Reminders are delivered as browser push notifications on devices where you enable them.
+              </p>
+
+              <button className="button composer-button" onClick={createReminder} disabled={loading}>
+                {loading ? "Saving reminder..." : "Add reminder"}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }
