@@ -20,8 +20,18 @@ export default function Login() {
       return;
     }
 
+    if (email.trim().length < 3) {
+      setError("Email must be at least 3 characters long.");
+      return;
+    }
+
     if (!password.trim()) {
       setError("Please enter your password.");
+      return;
+    }
+
+    if (password.length < 6 || password.length > 72) {
+      setError("Password must be between 6 and 72 characters long.");
       return;
     }
 
@@ -124,7 +134,11 @@ export default function Login() {
             </>
           ) : null}
 
-          {error ? <p className="status-message status-message--error">{error}</p> : null}
+          {error ? (
+            <p className="status-message status-message--error">
+              {typeof error === "string" ? error : JSON.stringify(error)}
+            </p>
+          ) : null}
 
           <button className="button" onClick={submitAuth} disabled={loading}>
             {loading ? "Working..." : mode === "create" ? "Create account" : "Sign in"}
