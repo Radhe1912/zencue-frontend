@@ -125,7 +125,7 @@ export async function subscribeUser(userId) {
   const registration = await navigator.serviceWorker.register("/sw.js");
 
   // Step 3: Fetch VAPID_PUBLIC_KEY from the backend
-  const response = await fetch("http://localhost:8000/push/public_key");
+  const response = await fetch(`${BACKEND_URL}/push/public_key`);
   const { publicKey } = await response.json();
 
   // Step 4: Subscribe the user
@@ -135,7 +135,7 @@ export async function subscribeUser(userId) {
   });
 
   // Step 5: Send subscription to the backend
-  await fetch("http://localhost:8000/push/subscribe", {
+  await fetch(`${BACKEND_URL}/push/subscribe`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
