@@ -45,9 +45,13 @@ export default function Login() {
 
     try {
       const endpoint = mode === "create" ? "/auth/register" : "/auth/login";
-      const res = await axios.post(`${BACKEND_URL}${endpoint}`, {
+      const payload = {
         email: email.trim(),
         password,
+      };
+
+      const res = await axios.post(`${BACKEND_URL}${endpoint}`, payload, {
+        params: payload
       });
 
       localStorage.setItem("email", email.trim());
